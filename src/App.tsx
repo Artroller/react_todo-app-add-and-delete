@@ -33,6 +33,7 @@ export const App: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const newTodoInputRef = useRef<HTMLInputElement>(null);
+  const nextTodoId = useRef(-1);
 
   const showError = (message: string) => {
     setErrorMessage(message);
@@ -67,8 +68,12 @@ export const App: React.FC = () => {
 
     setIsSubmitting(true);
 
+    const tempTodoId = nextTodoId.current;
+
+    nextTodoId.current -= 1;
+
     setTempTodo({
-      id: 0,
+      id: tempTodoId,
       userId: USER_ID,
       title: trimmedTitle,
       completed: false,
