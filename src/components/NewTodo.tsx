@@ -1,19 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 type Props = {
   onSubmit: (title: string) => Promise<boolean>;
   disabled: boolean;
+  inputRef: React.RefObject<HTMLInputElement>;
 };
 
-export const NewTodo: React.FC<Props> = ({ onSubmit, disabled }) => {
+export const NewTodo: React.FC<Props> = ({ onSubmit, disabled, inputRef }) => {
   const [title, setTitle] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!disabled && inputRef.current) {
-      inputRef.current.focus();
+    if (!disabled) {
+      inputRef.current?.focus();
     }
-  }, [disabled]);
+  }, [disabled, inputRef]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -22,23 +22,19 @@ export const NewTodo: React.FC<Props> = ({ onSubmit, disabled }) => {
       return;
     }
 
-    const trimmedTitle = title.trim();
+    const currentTitle = title;
 
-    if (!trimmedTitle) {
-      await onSubmit(title);
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
+    if (!currentTitle.trim()) {
+      await onSubmit(currentTitle);
+      inputRef.current?.focus();
 
       return;
     }
 
-    const success = await onSubmit(title);
+    const success = await onSubmit(currentTitle);
 
     if (success) {
       setTitle('');
-    } else if (inputRef.current) {
-      inputRef.current.focus();
     }
   };
 

@@ -1,13 +1,10 @@
 import { Todo } from '../types/Todo';
-
-const BASE_URL = 'https://mate.academy/students-api';
+import { client } from '../utils/fetchClient';
 
 export const USER_ID = 12345;
 
 export const getTodos = async (): Promise<Todo[]> => {
-  const response = await fetch(`${BASE_URL}/todos?userId=${USER_ID}`);
-
-  return response.json();
+  return client.get<Todo[]>(`/todos?userId=${USER_ID}`);
 };
 
 export const createTodo = async ({
@@ -15,17 +12,13 @@ export const createTodo = async ({
   userId,
   completed,
 }: Omit<Todo, 'id'>): Promise<Todo> => {
-  const response = await fetch(`${BASE_URL}/todos`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, userId, completed }),
+  return client.post<Todo>('/todos', {
+    title,
+    userId,
+    completed,
   });
-
-  return response.json();
 };
 
 export const deleteTodo = async (todoId: number): Promise<void> => {
-  await fetch(`${BASE_URL}/todos/${todoId}`, {
-    method: 'DELETE',
-  });
+  await client.delete(`/todos/${todoId}`);
 };

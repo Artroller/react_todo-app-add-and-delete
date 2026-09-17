@@ -1,7 +1,4 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
-/* eslint-disable jsx-a11y/control-has-associated-label */
-
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 
 import { UserWarning } from './UserWarning';
@@ -20,6 +17,13 @@ export const FILTERS = {
 
 export type FilterType = (typeof FILTERS)[keyof typeof FILTERS];
 
+enum ErrorMessages {
+  LOAD = 'Unable to load todos',
+  ADD = 'Unable to add a todo',
+  DELETE = 'Unable to delete a todo',
+  EMPTY_TITLE = 'Title should not be empty',
+}
+
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filter, setFilter] = useState<FilterType>(FILTERS.all);
@@ -27,6 +31,8 @@ export const App: React.FC = () => {
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [loadingIds, setLoadingIds] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const newTodoInputRef = useRef<HTMLInputElement>(null);
 
   const showError = (message: string) => {
     setErrorMessage(message);
@@ -42,7 +48,7 @@ export const App: React.FC = () => {
 
       setTodos(loadedTodos);
     } catch {
-      showError('Unable to load todos');
+      showError(ErrorMessages.LOAD);
     }
   }, []);
 
@@ -54,7 +60,7 @@ export const App: React.FC = () => {
     const trimmedTitle = title.trim();
 
     if (!trimmedTitle) {
-      showError('Title should not be empty');
+      showError(ErrorMessages.EMPTY_TITLE);
 
       return false;
     }
@@ -79,7 +85,7 @@ export const App: React.FC = () => {
 
       return true;
     } catch {
-      showError('Unable to add a todo');
+      showError(ErrorMessages.ADD);
 
       return false;
     } finally {
@@ -95,8 +101,10 @@ export const App: React.FC = () => {
       await deleteTodo(todoId);
 
       setTodos(prev => prev.filter(todo => todo.id !== todoId));
+
+      newTodoInputRef.current?.focus();
     } catch {
-      showError('Unable to delete a todo');
+      showError(ErrorMessages.DELETE);
     } finally {
       setLoadingIds(prev => prev.filter(id => id !== todoId));
     }
@@ -144,7 +152,11 @@ export const App: React.FC = () => {
             data-cy="ToggleAllButton"
           />
 
-          <NewTodo onSubmit={handleAddTodo} disabled={isSubmitting} />
+          <NewTodo
+            onSubmit={handleAddTodo}
+            disabled={isSubmitting}
+            inputRef={newTodoInputRef}
+          />
         </header>
 
         {todos.length > 0 || tempTodo ? (
@@ -159,7 +171,7 @@ export const App: React.FC = () => {
             <footer className="todoapp__footer" data-cy="Footer">
               <span className="todo-count" data-cy="TodosCounter">
                 {activeTodosCount}
-                {activeTodosCount === 1 ? 'item' : 'items'} left
+                {activeTodosCount === 1 ? ' item' : ' items'} left
               </span>
 
               <Filter currentFilter={filter} onFilterChange={setFilter} />
